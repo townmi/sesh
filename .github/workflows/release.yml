@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example v0.1.0'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -36,10 +41,16 @@ jobs:
         run: npm run build
 
       - name: Pack
-        run: npm pack
+        id: pack
+        run: |
+          package_file="$(npm pack --silent)"
+          echo "package_file=${package_file}" >> "$GITHUB_OUTPUT"
+          echo "Created ${package_file}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: sesh-*.tgz
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+          target_commitish: main
+          files: ${{ steps.pack.outputs.package_file }}
           generate_release_notes: true

@@ -122,22 +122,31 @@ npm run build
 
 The release workflow lives at `.github/workflows/release.yml`.
 
-Create and push a version tag that matches the package version:
+Option 1: create and push a version tag that matches the package version:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
+Option 2: run it from GitHub:
+
+1. Open <https://github.com/townmi/sesh/actions/workflows/release.yml>
+2. Click **Run workflow**
+3. Enter a tag such as `v0.1.0`
+
 The GitHub Actions release job will:
 
 1. Install dependencies with `npm ci`
 2. Run lint, tests, and build
 3. Create an npm package tarball with `npm pack`
-4. Attach the tarball to the GitHub Release
+4. Publish a GitHub Release
+5. Attach the installable `sesh-<version>.tgz` package
 
 The release asset can be installed with:
 
 ```bash
 npm install -g https://github.com/townmi/sesh/releases/download/v0.1.0/sesh-0.1.0.tgz
 ```
+
+This release asset is an npm package that installs the `sesh` command. It is not a native standalone executable; Node.js 22 or newer is required.
