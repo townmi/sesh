@@ -2,6 +2,8 @@
 
 CLI tool for browsing, inspecting, exporting, and deleting AI agent sessions.
 
+Repository: <https://github.com/townmi/sesh>
+
 `sesh` currently supports:
 
 - Claude Code sessions from `~/.claude/`
@@ -21,11 +23,9 @@ sesh --help
 From a GitHub Release tarball:
 
 ```bash
-npm install -g https://github.com/<owner>/<repo>/releases/download/v0.1.0/sesh-0.1.0.tgz
+npm install -g https://github.com/townmi/sesh/releases/download/v0.1.0/sesh-0.1.0.tgz
 sesh --help
 ```
-
-Replace `<owner>/<repo>` with the repository path.
 
 ## Usage
 
@@ -120,14 +120,16 @@ npm run build
 
 ## Release
 
-Create and push a version tag:
+The release workflow lives at `.github/workflows/release.yml`.
+
+Create and push a version tag that matches the package version:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-GitHub Actions will:
+The GitHub Actions release job will:
 
 1. Install dependencies with `npm ci`
 2. Run lint, tests, and build
@@ -137,5 +139,5 @@ GitHub Actions will:
 The release asset can be installed with:
 
 ```bash
-npm install -g https://github.com/<owner>/<repo>/releases/download/v0.1.0/sesh-0.1.0.tgz
+npm install -g https://github.com/townmi/sesh/releases/download/v0.1.0/sesh-0.1.0.tgz
 ```

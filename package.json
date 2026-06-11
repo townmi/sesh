@@ -4,6 +4,14 @@
   "description": "CLI AI agent session manager",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/townmi/sesh.git"
+  },
+  "bugs": {
+    "url": "https://github.com/townmi/sesh/issues"
+  },
+  "homepage": "https://github.com/townmi/sesh#readme",
   "engines": {
     "node": ">=22"
   },
