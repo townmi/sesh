@@ -1,0 +1,39 @@
+{
+  "name": "sesh",
+  "version": "0.1.0",
+  "description": "CLI AI agent session manager",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "README.md",
+    "package.json"
+  ],
+  "bin": {
+    "sesh": "./bin/sesh.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ tests/ && prettier --check src/ tests/",
+    "fmt": "prettier --write src/ tests/"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}
