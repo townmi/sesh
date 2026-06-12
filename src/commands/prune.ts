@@ -1,6 +1,6 @@
 import { getPlugins } from '../plugins/registry.js';
 import { formatBytes } from '../utils/format.js';
-import { createInterface } from 'node:readline';
+import { promptConfirm } from '../utils/prompt.js';
 
 export interface PruneOptions {
   agent?: string;
@@ -9,21 +9,16 @@ export interface PruneOptions {
   force?: boolean;
 }
 
-async function promptConfirm(question: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stderr });
-  return new Promise((resolve) => {
-    rl.question(question, (answer: string) => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
+interface PruneFailure {
+  pluginName: string;
+  sessionId: string;
+  error: string;
 }
 
 export async function pruneCommand(opts: PruneOptions): Promise<void> {
   const match = opts.olderThan?.match(/^(\d+)([dh])$/);
   if (!match) {
-    process.stderr.write('error: older-than must be like 30d or 24h\n');
-    return;
+    throw new Error('older-than must be like 30d or 24h');
   }
 
   const value = parseInt(match[1], 10);
@@ -79,13 +74,28 @@ export async function pruneCommand(opts: PruneOptions): Promise<void> {
   }
 
   let totalBytes = 0;
+  const failures: PruneFailure[] = [];
   for (const s of toPrune) {
     const plugin = plugins.find((p) => p.name === s.pluginName);
     if (plugin) {
-      const report = await plugin.deleteSession(s.sessionId);
-      totalBytes += report.bytes;
+      try {
+        const report = await plugin.deleteSession(s.sessionId);
+        totalBytes += report.bytes;
+      } catch (error) {
+        failures.push({
+          pluginName: s.pluginName,
+          sessionId: s.sessionId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   }
 
-  process.stderr.write(`pruned ${toPrune.length} session(s), freed ${formatBytes(totalBytes)}\n`);
+  const deletedCount = toPrune.length - failures.length;
+  process.stderr.write(`pruned ${deletedCount} session(s), freed ${formatBytes(totalBytes)}\n`);
+  for (const failure of failures) {
+    process.stderr.write(
+      `failed to prune [${failure.pluginName}] ${failure.sessionId}: ${failure.error}\n`,
+    );
+  }
 }

@@ -10,7 +10,6 @@ import {
   SessionMessage,
 } from '../types.js';
 import { readJsonl, writeJsonl } from '../utils/fs.js';
-import { formatShortId } from '../utils/format.js';
 
 interface CodexDeleteContext {
   sessionEntry: CodexIndexEntry;
@@ -99,7 +98,7 @@ export class CodexPlugin implements AgentPlugin {
 
       sessions.push({
         id: entry.id,
-        shortId: entry.id.slice(0, 8),
+        shortId: entry.id.slice(0, 12),
         title: entry.thread_name,
         project,
         updatedAt: entry.updated_at,
@@ -115,6 +114,20 @@ export class CodexPlugin implements AgentPlugin {
 
   async deleteSession(sessionId: string): Promise<DeleteReport> {
     const context = await this.buildDeleteContext(sessionId);
+
+    const failures: string[] = [];
+    for (const filePath of context.files) {
+      try {
+        await rmFs(filePath, { recursive: true, force: true });
+      } catch {
+        failures.push(filePath);
+      }
+    }
+
+    if (failures.length > 0) {
+      throw new Error(`failed to delete files: ${failures.join(', ')}`);
+    }
+
     const entries = await readJsonl<CodexIndexEntry>(join(this.basePath, 'session_index.jsonl'));
     const keepEntries = entries.filter((e) => e.id !== sessionId);
     await writeJsonl(join(this.basePath, 'session_index.jsonl'), keepEntries);
@@ -122,10 +135,6 @@ export class CodexPlugin implements AgentPlugin {
     const keepHistory = context.historyEntries.filter((e) => e.session_id !== sessionId);
     const afterSize = JSON.stringify(keepHistory).length;
     await writeJsonl(join(this.basePath, 'history.jsonl'), keepHistory);
-
-    for (const filePath of context.files) {
-      await rmFs(filePath, { recursive: true, force: true });
-    }
 
     return this.contextToReport(sessionId, context, afterSize);
   }
@@ -186,7 +195,7 @@ export class CodexPlugin implements AgentPlugin {
     return {
       session: {
         id: sessionId,
-        shortId: sessionId.slice(0, 8),
+        shortId: sessionId.slice(0, 12),
         title: context.sessionEntry.thread_name,
         project: context.project,
         updatedAt: context.sessionEntry.updated_at,
@@ -201,7 +210,7 @@ export class CodexPlugin implements AgentPlugin {
   async showSession(sessionId: string): Promise<Session> {
     const sessions = await this.listSessions({ verbose: true });
     const session = sessions.find(
-      (s) => s.id === sessionId || s.shortId === sessionId || formatShortId(s.id) === sessionId,
+      (s) => s.id === sessionId || s.shortId === sessionId || s.id.slice(0, 12) === sessionId,
     );
     if (!session) throw new Error(`session ${sessionId} not found`);
     return session;
@@ -243,26 +252,6 @@ export class CodexPlugin implements AgentPlugin {
     const sessions = await this.listSessions();
     const lower = query.toLowerCase();
     return sessions.filter((s) => s.title.toLowerCase().includes(lower));
-  }
-
-  async pruneSessions(olderThan: string): Promise<DeleteReport[]> {
-    const match = olderThan.match(/^(\d+)([dh])$/);
-    if (!match) throw new Error('older-than must be like 30d or 24h');
-
-    const value = parseInt(match[1], 10);
-    const unit = match[2];
-    const cutoff = Date.now() - value * (unit === 'd' ? 86400000 : 3600000);
-
-    const sessions = await this.listSessions();
-    const toPrune = sessions.filter((s) => new Date(s.updatedAt).getTime() < cutoff);
-
-    const reports: DeleteReport[] = [];
-    for (const session of toPrune) {
-      const report = await this.deleteSession(session.id);
-      reports.push(report);
-    }
-
-    return reports;
   }
 
   private async findSessionProject(entry: CodexIndexEntry): Promise<string> {

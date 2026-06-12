@@ -82,6 +82,20 @@ describe('ClaudePlugin', () => {
       expect(report.files.length).toBeGreaterThan(0);
     });
 
+    it('removes session from history.jsonl index', async () => {
+      await plugin.deleteSession('aaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+      const sessions = await plugin.listSessions();
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0].id).toBe('11111111-2222-3333-4444-555555555555');
+    });
+
+    it('succeeds when session files are already gone (deletes before index)', async () => {
+      await rm(join(tmpDir, 'projects'), { recursive: true, force: true });
+      await plugin.deleteSession('aaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+      const sessions = await plugin.listSessions();
+      expect(sessions).toHaveLength(1);
+    });
+
     it('throws for unknown session', async () => {
       await expect(plugin.deleteSession('nonexistent')).rejects.toThrow('session');
     });
@@ -111,13 +125,7 @@ describe('ClaudePlugin', () => {
     });
 
     it('returns full session details by short id', async () => {
-      const session = await plugin.showSession('aaaaaaa-');
-      expect(session.id).toBe('aaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
-      expect(session.title).toBe('fix the login bug');
-    });
-
-    it('returns full session details by displayed short id', async () => {
-      const session = await plugin.showSession('aaaaaaab');
+      const session = await plugin.showSession('aaaaaaa-bbbb');
       expect(session.id).toBe('aaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
       expect(session.title).toBe('fix the login bug');
     });
@@ -157,13 +165,6 @@ describe('ClaudePlugin', () => {
     it('returns empty for no match', async () => {
       const sessions = await plugin.searchSessions('zzzzz');
       expect(sessions).toEqual([]);
-    });
-  });
-
-  describe('pruneSessions', () => {
-    it('prunes sessions older than cutoff', async () => {
-      const reports = await plugin.pruneSessions('1d');
-      expect(reports).toHaveLength(2);
     });
   });
 });

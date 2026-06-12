@@ -60,7 +60,6 @@ describe('showCommand', () => {
       showSession: async () => session,
       exportSession: async () => ({ session, messages: [], sourceFiles: [] }),
       searchSessions: async () => [],
-      pruneSessions: async () => [],
     };
   }
 

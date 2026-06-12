@@ -38,7 +38,6 @@ function createMockPlugin(name: string, sessions: Session[]): AgentPlugin {
       sourceFiles: [],
     }),
     searchSessions: async () => [],
-    pruneSessions: async () => [],
   };
 }
 

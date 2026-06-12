@@ -6,13 +6,15 @@ Supports:
 
 - Claude Code: `~/.claude/`
 - Codex: `~/.codex/`
+- Reasonix: `~/Library/Application Support/reasonix/` (macOS) / `~/.local/share/reasonix/` (Linux)
+- Opencode: `~/Library/Application Support/opencode/` (macOS) / `~/.local/share/opencode/` (Linux)
 
 ## Install
 
 From a GitHub Release:
 
 ```bash
-npm install -g https://github.com/townmi/sesh/releases/download/v0.1.0/sesh-0.1.0.tgz
+npm install -g https://github.com/townmi/sesh/releases/latest/download/sesh-latest.tgz
 ```
 
 From source:
@@ -46,4 +48,4 @@ sesh prune 40d
 sesh prune --older-than 24h --dry-run
 ```
 
-`show`, `export`, and `rm` infer the agent automatically. If an ID exists in more than one agent, pass `--agent claude` or `--agent codex`.
+`show`, `export`, and `rm` infer the agent automatically. If an ID exists in more than one agent, pass `--agent claude`, `--agent codex`, `--agent reasonix`, or `--agent opencode`.

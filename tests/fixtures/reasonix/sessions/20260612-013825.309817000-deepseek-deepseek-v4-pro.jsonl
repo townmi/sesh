@@ -1,0 +1,4 @@
+{"role":"system","content":"You are Reasonix, a coding agent."}
+{"role":"user","content":"fix the login bug in auth module"}
+{"role":"assistant","content":"I'll fix the login bug. Let me look at the auth module first."}
+{"role":"assistant","content":"The issue was in the token validation. Fixed."}

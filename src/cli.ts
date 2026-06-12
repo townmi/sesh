@@ -9,9 +9,13 @@ import { exportCommand } from './commands/export.js';
 import { registerPlugin } from './plugins/registry.js';
 import { ClaudePlugin } from './plugins/claude.js';
 import { CodexPlugin } from './plugins/codex.js';
+import { ReasonixPlugin } from './plugins/reasonix.js';
+import { OpencodePlugin } from './plugins/opencode.js';
 
 registerPlugin(new ClaudePlugin());
 registerPlugin(new CodexPlugin());
+registerPlugin(new ReasonixPlugin());
+registerPlugin(new OpencodePlugin());
 
 const program = new Command();
 
@@ -28,7 +32,7 @@ program.name('sesh').description('manage AI agent sessions').version('0.1.0');
 program
   .command('list')
   .description('list sessions')
-  .option('--agent <name>', 'filter by agent (claude, codex)')
+  .option('--agent <name>', 'filter by agent (claude, codex, reasonix, opencode)')
   .option('--project <path>', 'filter by project path')
   .option('--verbose', 'show message count')
   .action((opts) => runCommand(() => listCommand(opts)));

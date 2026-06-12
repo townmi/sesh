@@ -22,6 +22,15 @@ export async function readJsonl<T>(filePath: string): Promise<T[]> {
   }
 }
 
+export async function readJson<T>(filePath: string): Promise<T | null> {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    return JSON.parse(content) as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function writeJsonl<T>(filePath: string, items: T[]): Promise<void> {
   await mkdir(dirname(filePath), { recursive: true });
   const lines = items.map((item) => JSON.stringify(item)).join('\n');

@@ -58,7 +58,6 @@ describe('searchCommand', () => {
       showSession: async () => sessions[0],
       exportSession: async () => ({ session: sessions[0], messages: [], sourceFiles: [] }),
       searchSessions: async (q) => sessions.filter((s) => s.title.includes(q)),
-      pruneSessions: async () => [],
     };
     registerPlugin(plugin);
     await searchCommand({ query: 'login', agent: undefined });
@@ -85,7 +84,6 @@ describe('searchCommand', () => {
       showSession: async () => sessions[0],
       exportSession: async () => ({ session: sessions[0], messages: [], sourceFiles: [] }),
       searchSessions: async () => [],
-      pruneSessions: async () => [],
     };
     registerPlugin(plugin);
     await searchCommand({ query: 'zzzzz', agent: undefined });

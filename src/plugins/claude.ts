@@ -9,7 +9,6 @@ import {
   SessionMessage,
 } from '../types.js';
 import { readJsonl, writeJsonl } from '../utils/fs.js';
-import { formatShortId } from '../utils/format.js';
 
 interface ClaudeDeleteContext {
   sessionEntry: ClaudeHistoryEntry;
@@ -78,7 +77,7 @@ export class ClaudePlugin implements AgentPlugin {
       if (opts?.project && first.project !== opts.project) continue;
       sessions.push({
         id: first.sessionId,
-        shortId: first.sessionId.slice(0, 8),
+        shortId: first.sessionId.slice(0, 12),
         title: first.display,
         project: first.project,
         updatedAt: new Date(first.timestamp).toISOString(),
@@ -93,12 +92,21 @@ export class ClaudePlugin implements AgentPlugin {
   async deleteSession(sessionId: string): Promise<DeleteReport> {
     const context = await this.buildDeleteContext(sessionId);
 
+    const failures: string[] = [];
+    for (const filePath of context.files) {
+      try {
+        await rmFs(filePath, { recursive: true, force: true });
+      } catch {
+        failures.push(filePath);
+      }
+    }
+
+    if (failures.length > 0) {
+      throw new Error(`failed to delete files: ${failures.join(', ')}`);
+    }
+
     const keepEntries = context.entries.filter((e) => e.sessionId !== sessionId);
     await writeJsonl(join(this.basePath, 'history.jsonl'), keepEntries);
-
-    for (const filePath of context.files) {
-      await rmFs(filePath, { recursive: true, force: true });
-    }
 
     return this.contextToReport(sessionId, context);
   }
@@ -111,7 +119,7 @@ export class ClaudePlugin implements AgentPlugin {
   async showSession(sessionId: string): Promise<Session> {
     const sessions = await this.listSessions();
     const session = sessions.find(
-      (s) => s.id === sessionId || s.shortId === sessionId || formatShortId(s.id) === sessionId,
+      (s) => s.id === sessionId || s.shortId === sessionId || s.id.slice(0, 12) === sessionId,
     );
     if (!session) throw new Error(`session ${sessionId} not found`);
     return session;
@@ -164,26 +172,6 @@ export class ClaudePlugin implements AgentPlugin {
     return sessions.filter((s) => s.title.toLowerCase().includes(lower));
   }
 
-  async pruneSessions(olderThan: string): Promise<DeleteReport[]> {
-    const match = olderThan.match(/^(\d+)([dh])$/);
-    if (!match) throw new Error('older-than must be like 30d or 24h');
-
-    const value = parseInt(match[1], 10);
-    const unit = match[2];
-    const cutoff = Date.now() - value * (unit === 'd' ? 86400000 : 3600000);
-
-    const sessions = await this.listSessions();
-    const toPrune = sessions.filter((s) => new Date(s.updatedAt).getTime() < cutoff);
-
-    const reports: DeleteReport[] = [];
-    for (const session of toPrune) {
-      const report = await this.deleteSession(session.id);
-      reports.push(report);
-    }
-
-    return reports;
-  }
-
   private async buildDeleteContext(sessionId: string): Promise<ClaudeDeleteContext> {
     const entries = await readJsonl<ClaudeHistoryEntry>(join(this.basePath, 'history.jsonl'));
     const sessionEntry = entries.find((e) => e.sessionId === sessionId);
@@ -229,7 +217,7 @@ export class ClaudePlugin implements AgentPlugin {
     return {
       session: {
         id: sessionId,
-        shortId: sessionId.slice(0, 8),
+        shortId: sessionId.slice(0, 12),
         title: context.sessionEntry.display,
         project: context.sessionEntry.project,
         updatedAt: new Date(context.sessionEntry.timestamp).toISOString(),

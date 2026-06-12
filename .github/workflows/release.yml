@@ -44,7 +44,9 @@ jobs:
         id: pack
         run: |
           package_file="$(npm pack --silent)"
+          cp "${package_file}" sesh-latest.tgz
           echo "package_file=${package_file}" >> "$GITHUB_OUTPUT"
+          echo "latest_file=sesh-latest.tgz" >> "$GITHUB_OUTPUT"
           echo "Created ${package_file}"
 
       - name: Create GitHub Release
@@ -52,5 +54,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
           target_commitish: main
-          files: ${{ steps.pack.outputs.package_file }}
+          files: |
+            ${{ steps.pack.outputs.package_file }}
+            ${{ steps.pack.outputs.latest_file }}
           generate_release_notes: true

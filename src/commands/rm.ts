@@ -1,8 +1,6 @@
-import { createInterface } from 'node:readline';
-import { getPlugin, getPlugins } from '../plugins/registry.js';
-import { AgentPlugin } from '../plugins/base.js';
 import { formatBytes, formatDate } from '../utils/format.js';
-import { Session } from '../types.js';
+import { promptConfirm } from '../utils/prompt.js';
+import { resolveFromPlugins } from '../utils/resolve.js';
 
 export interface RmOptions {
   id: string;
@@ -11,55 +9,8 @@ export interface RmOptions {
   force?: boolean;
 }
 
-interface ResolvedSession {
-  plugin: AgentPlugin;
-  session: Session;
-}
-
-async function promptConfirm(question: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stderr });
-  return new Promise((resolve) => {
-    rl.question(question, (answer: string) => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
-}
-
-async function resolveSession(opts: RmOptions): Promise<ResolvedSession> {
-  if (opts.agent !== undefined) {
-    const plugin = getPlugin(opts.agent);
-    if (!plugin) {
-      throw new Error(`unknown agent "${opts.agent}"`);
-    }
-    const session = await plugin.showSession(opts.id);
-    return { plugin, session };
-  }
-
-  const matches: ResolvedSession[] = [];
-  for (const plugin of getPlugins()) {
-    try {
-      const session = await plugin.showSession(opts.id);
-      matches.push({ plugin, session });
-    } catch {
-      /* session does not belong to this plugin */
-    }
-  }
-
-  if (matches.length === 0) {
-    throw new Error(`session ${opts.id} not found`);
-  }
-
-  if (matches.length > 1) {
-    const agents = matches.map((match) => match.plugin.name).join(', ');
-    throw new Error(`session ${opts.id} found in multiple agents: ${agents}; specify --agent`);
-  }
-
-  return matches[0];
-}
-
 export async function rmCommand(opts: RmOptions): Promise<void> {
-  const { plugin, session } = await resolveSession(opts);
+  const { plugin, result: session } = await resolveFromPlugins(opts, (p, id) => p.showSession(id));
 
   if (opts.dryRun) {
     const report = await plugin.previewDeleteSession(session.id);

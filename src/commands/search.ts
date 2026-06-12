@@ -1,11 +1,5 @@
 import { getPlugins } from '../plugins/registry.js';
-import {
-  formatShortId,
-  truncateMiddle,
-  sanitize,
-  formatDate,
-  formatTable,
-} from '../utils/format.js';
+import { truncateMiddle, sanitize, formatDate, formatTable } from '../utils/format.js';
 import { Session } from '../types.js';
 
 export interface SearchOptions {
@@ -37,7 +31,7 @@ export async function searchCommand(opts: SearchOptions): Promise<void> {
   });
 
   const rows = allResults.map((s) => ({
-    ID: formatShortId(s.id),
+    ID: s.shortId,
     AGENT: s.agent,
     PROJECT: truncateMiddle(s.project || '-', 40),
     TITLE: sanitize(s.title),

@@ -29,7 +29,6 @@ function createMockPlugin(name: string): AgentPlugin {
     showSession: async () => emptySession,
     exportSession: async () => ({ session: emptySession, messages: [], sourceFiles: [] }),
     searchSessions: async () => [],
-    pruneSessions: async () => [],
   };
 }
 

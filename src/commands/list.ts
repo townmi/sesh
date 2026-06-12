@@ -1,11 +1,5 @@
 import { getPlugins } from '../plugins/registry.js';
-import {
-  formatShortId,
-  truncateMiddle,
-  sanitize,
-  formatDate,
-  formatTable,
-} from '../utils/format.js';
+import { truncateMiddle, sanitize, formatDate, formatTable } from '../utils/format.js';
 import { Session } from '../types.js';
 
 export interface ListOptions {
@@ -39,7 +33,7 @@ export async function listCommand(opts: ListOptions): Promise<void> {
 
   const rows = allSessions.map((s) => {
     const row: Record<string, string> = {
-      ID: formatShortId(s.id),
+      ID: s.shortId,
       AGENT: s.agent,
       PROJECT: truncateMiddle(s.project || '-', 40),
       TITLE: sanitize(s.title),

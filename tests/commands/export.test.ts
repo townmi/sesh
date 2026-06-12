@@ -38,7 +38,6 @@ function createPlugin(name = 'test', exported?: SessionExport): AgentPlugin {
     showSession: async () => session,
     exportSession: async () => exportData,
     searchSessions: async () => [],
-    pruneSessions: async () => [],
   };
 }
 

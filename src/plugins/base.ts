@@ -11,5 +11,4 @@ export interface AgentPlugin {
   showSession(sessionId: string): Promise<Session>;
   exportSession(sessionId: string): Promise<SessionExport>;
   searchSessions(query: string): Promise<Session[]>;
-  pruneSessions(olderThan: string): Promise<DeleteReport[]>;
 }
